@@ -1,9 +1,10 @@
 #include "labyrinthe.hpp"
 #include <iostream>
+#include <algorithm>
 
 labyrinthe::labyrinthe() : _cellSize(30.0f)
 {
-    _window.create(sf::VideoMode(1500, 750), "LABYRINTH");
+    _window.create(sf::VideoMode(1920, 1080), "LABYRINTH");
     if (!_font.loadFromFile("./assets/font/arial.ttf")) {
         std::cerr << "Erreur: Impossible de charger la police arial.ttf" << std::endl;
         if (!_font.loadFromFile("arial.ttf")) {
@@ -23,14 +24,12 @@ void labyrinthe::create_lab()
             sf::RectangleShape fly(sf::Vector2f(_cellSize, _cellSize));
             fly.setPosition(j * _cellSize, i * _cellSize);
             if (i == 0 || j == 0 || i == _rows-1 || j == _cols-1) {
-                fly.setFillColor(sf::Color::Yellow);
+                fly.setFillColor(sf::Color::Blue);
                 _grid[i][j] = WALL;
             } else {
                 fly.setFillColor(sf::Color::White);
                 _grid[i][j] = EMPTY;
             }
-            fly.setOutlineColor(sf::Color::Black);
-            fly.setOutlineThickness(1.0f);
             all_case.push_back(fly);
         }
     }
@@ -44,7 +43,7 @@ std::vector<std::string> labyrinthe::load_map_file(const std::string& filename)
 {
     std::vector<std::string> mapData;
     std::ifstream file(filename);
-    
+
     if (!file.is_open()) {
         std::cerr << "Erreur: Impossible d'ouvrir le fichier " << filename << std::endl;
         return mapData;
@@ -60,13 +59,14 @@ std::vector<std::string> labyrinthe::load_map_file(const std::string& filename)
 
 void labyrinthe::create_lab_from_data(const std::vector<std::string>& mapData)
 {
-    char cell;
-    int row = 0;
     _rows = mapData.size();
     _cols = 0;
+    char cell;
+    int row = 0;
 
     for (const auto& l : mapData)
         _cols = std::max(_cols, (int)l.size());
+    adjust_window_size();    
     _grid.resize(_rows, std::vector<CellType>(_cols, EMPTY));
     all_case.clear();
     for (const auto& line : mapData) {
@@ -75,7 +75,7 @@ void labyrinthe::create_lab_from_data(const std::vector<std::string>& mapData)
             fly.setPosition(col * _cellSize, row * _cellSize);
             cell = line[col];
             if (cell == '#') {
-                fly.setFillColor(sf::Color::Yellow);
+                fly.setFillColor(sf::Color::Blue);
                 _grid[row][col] = WALL;
             } else if (cell == 'E') {
                 fly.setFillColor(sf::Color::Green);
@@ -93,22 +93,49 @@ void labyrinthe::create_lab_from_data(const std::vector<std::string>& mapData)
                 fly.setFillColor(sf::Color::White);
                 _grid[row][col] = EMPTY;
             }
-            fly.setOutlineColor(sf::Color::Black);
-            fly.setOutlineThickness(1.0f);
             all_case.push_back(fly);
         }
         row++;
+    }
+    adjust_view();
+}
+
+void labyrinthe::adjust_window_size()
+{
+    unsigned int windowWidth = std::min(_cols * (unsigned int)_cellSize, 1500u);
+    unsigned int windowHeight = std::min(_rows * (unsigned int)_cellSize, 760u);
+
+    _window.setSize(sf::Vector2u(windowWidth, windowHeight));
+}
+
+void labyrinthe::adjust_view()
+{
+    sf::View view;
+    float totalWidth = _cols * _cellSize;
+    float totalHeight = _rows * _cellSize;
+    float zoomX;
+    float zoomY;
+    float zoom;
+
+    if (totalWidth > _window.getSize().x || totalHeight > _window.getSize().y) {
+        zoomX = _window.getSize().x / totalWidth;
+        zoomY = _window.getSize().y / totalHeight;
+        zoom = std::min(zoomX, zoomY);
+        view.setSize(_window.getSize().x / zoom, _window.getSize().y / zoom);
+        view.setCenter(totalWidth / 2, totalHeight / 2);
+        _window.setView(view);
     }
 }
 
 void labyrinthe::create_lab(std::string lab)
 {
     std::vector<std::string> mapData = load_map_file(lab);
-
+    
     if (mapData.empty()) {
         create_lab();
         return;
     }
+    
     create_lab_from_data(mapData);
 }
 

@@ -25,11 +25,14 @@ class labyrinthe
         sf::RectangleShape perso;
         std::vector<std::vector<CellType>> _grid;
         float _cellSize;
-        int _rows, _cols;
+        int _rows;
+        int _cols;
 
         bool isValidPosition(float x, float y);
         std::vector<std::string> load_map_file(const std::string& filename);
         void create_lab_from_data(const std::vector<std::string>& mapData);
+        void adjust_window_size();
+        void adjust_view();
         
     public:
         labyrinthe();

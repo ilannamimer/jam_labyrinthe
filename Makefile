@@ -54,7 +54,7 @@ intro:
 outro:
 	@$(ECHO) "$(GREEN)$(BOLD)  🎮 LABYRINTH successfully built! 🎮$(RESET)"
 	@$(ECHO) "$(CYAN)  Run with: $(WHITE)./$(NAME)$(RESET)"
-	@$(ECHO) "$(CYAN)  Run with map: $(WHITE)./$(NAME) test1.txt$(RESET)"
+	@$(ECHO) "$(CYAN)  Run with map: $(WHITE)./$(NAME) map/map_easy.txt$(RESET)"
 
 $(NAME): $(OBJ)
 	@$(ECHO) "$(YELLOW)⚡ Linking executable: $(CYAN)$@$(RESET)"
@@ -71,11 +71,11 @@ run: $(NAME)
 
 run_test: $(NAME)
 	@$(ECHO) "$(YELLOW)🎮 Starting Labyrinth with test map...$(RESET)"
-	@./$(NAME) test1.txt
+	@./$(NAME) map/map_easy.txt
 
 valgrind: $(NAME)
 	@$(ECHO) "$(MAGENTA)🔍 Running memory check with Valgrind...$(RESET)"
-	@valgrind --leak-check=full --show-leak-kinds=all ./$(NAME) test1.txt
+	@valgrind --leak-check=full --show-leak-kinds=all ./$(NAME) map/map_easy.txt
 
 %.o: %.cpp
 	@$(ECHO) "$(BLUE)Compiling: $(WHITE)$<$(RESET)"
