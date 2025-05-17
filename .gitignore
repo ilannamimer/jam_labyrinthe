@@ -1,0 +1,6 @@
+coding-style-reports.log
+*.o
+*.a
+vgcore*
+.vscode
+Jam
