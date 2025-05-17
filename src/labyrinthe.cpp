@@ -1,7 +1,7 @@
 #include "labyrinthe.hpp"
 #include <iostream>
 
-labyrinthe::labyrinthe()
+labyrinthe::labyrinthe() : _cellSize(30.0f)
 {
     _window.create(sf::VideoMode(1500, 750), "LABYRINTH");
     if (!_font.loadFromFile("./assets/font/arial.ttf")) {
