@@ -13,7 +13,7 @@ ECHO    = echo -e
 SRC_DIR     = src
 INCLUDE_DIR = include
 
-NAME        = labyrinth
+NAME        = maze
 
 BLACK       = \033[0;30m
 RED         = \033[0;31m
@@ -26,12 +26,12 @@ WHITE       = \033[0;37m
 BOLD        = \033[1m
 RESET       = \033[0m
 
-CXXFLAGS    = -Wall -Wextra -std=c++11 -iquote $(INCLUDE_DIR)
-LDFLAGS     = -lsfml-graphics -lsfml-window -lsfml-system
+CXXFLAGS    = -Wall -Wextra -std=c++11 -iquote $(SRC_DIR)
+LDFLAGS     = -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio
 
 DEBUG_FLAGS = -g3 -DDEBUG
 
-SRC_CORE = main.cpp labyrinthe.cpp
+SRC_CORE = main.cpp maze.cpp menu.cpp settings.cpp resolution.cpp game_context.cpp
 
 SRC = $(addprefix $(SRC_DIR)/, $(SRC_CORE))
 
@@ -41,18 +41,18 @@ all: intro $(NAME) outro
 
 intro:
 	@clear
-	@$(ECHO) "$(RED)  ██╗      █████╗ ██████╗ ██╗   ██╗██████╗ ██╗███╗   ██╗████████╗██╗  ██╗"
-	@$(ECHO) "$(RED)  ██║     ██╔══██╗██╔══██╗╚██╗ ██╔╝██╔══██╗██║████╗  ██║╚══██╔══╝██║  ██║"
-	@$(ECHO) "$(RED)  ██║     ███████║██████╔╝ ╚████╔╝ ██████╔╝██║██╔██╗ ██║   ██║   ███████║"
-	@$(ECHO) "$(RED)  ██║     ██╔══██║██╔══██╗  ╚██╔╝  ██╔══██╗██║██║╚██╗██║   ██║   ██╔══██║"
-	@$(ECHO) "$(RED)  ███████╗██║  ██║██████╔╝   ██║   ██║  ██║██║██║ ╚████║   ██║   ██║  ██║"
-	@$(ECHO) "$(RED)  ╚══════╝╚═╝  ╚═╝╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝"
+	@$(ECHO) "$(RED)  ███╗   ███╗ █████╗ ███████╗███████╗"
+	@$(ECHO) "$(RED)  ████╗ ████║██╔══██╗╚══███╔╝██╔════╝"
+	@$(ECHO) "$(RED)  ██╔████╔██║███████║  ███╔╝ █████╗  "
+	@$(ECHO) "$(RED)  ██║╚██╔╝██║██╔══██║ ███╔╝  ██╔══╝  "
+	@$(ECHO) "$(RED)  ██║ ╚═╝ ██║██║  ██║███████╗███████╗"
+	@$(ECHO) "$(RED)  ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝"
 	@$(ECHO) "$(YELLOW)===============================================================$(RESET)"
-	@$(ECHO) "$(CYAN)➤ Building Labyrinth project$(RESET)"
+	@$(ECHO) "$(CYAN)➤ Building maze project$(RESET)"
 	@$(ECHO) "$(YELLOW)===============================================================$(RESET)"
 
 outro:
-	@$(ECHO) "$(GREEN)$(BOLD)  🎮 LABYRINTH successfully built! 🎮$(RESET)"
+	@$(ECHO) "$(GREEN)$(BOLD)  🎮 maze successfully built! 🎮$(RESET)"
 	@$(ECHO) "$(CYAN)  Run with: $(WHITE)./$(NAME)$(RESET)"
 	@$(ECHO) "$(CYAN)  Run with map: $(WHITE)./$(NAME) map/map_easy.txt$(RESET)"
 
@@ -66,11 +66,11 @@ debug: clean intro $(NAME)
 	@$(ECHO) "$(GREEN)✓ Debug build complete!$(RESET)"
 
 run: $(NAME)
-	@$(ECHO) "$(YELLOW)🎮 Starting Labyrinth...$(RESET)"
+	@$(ECHO) "$(YELLOW)🎮 Starting maze...$(RESET)"
 	@./$(NAME)
 
 run_test: $(NAME)
-	@$(ECHO) "$(YELLOW)🎮 Starting Labyrinth with test map...$(RESET)"
+	@$(ECHO) "$(YELLOW)🎮 Starting maze with test map...$(RESET)"
 	@./$(NAME) map/map_easy.txt
 
 valgrind: $(NAME)
@@ -104,9 +104,9 @@ re: fclean all
 
 help:
 	@$(ECHO) "$(YELLOW)╔═════════════════════════════════════════════════╗$(RESET)"
-	@$(ECHO) "$(YELLOW)║             LABYRINTH MAKE COMMANDS             ║$(RESET)"
+	@$(ECHO) "$(YELLOW)║             MAZE MAKE COMMANDS                  ║$(RESET)"
 	@$(ECHO) "$(YELLOW)╚═════════════════════════════════════════════════╝$(RESET)"
-	@$(ECHO) "$(CYAN)  make$(RESET)        - Build the labyrinth game"
+	@$(ECHO) "$(CYAN)  make$(RESET)        - Build the maze game"
 	@$(ECHO) "$(CYAN)  make run$(RESET)    - Run the game"
 	@$(ECHO) "$(CYAN)  make run_test$(RESET) - Run with test map"
 	@$(ECHO) "$(CYAN)  make debug$(RESET)  - Build with debug symbols"

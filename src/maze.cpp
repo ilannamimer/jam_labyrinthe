@@ -1,24 +1,63 @@
-#include "labyrinthe.hpp"
+#include "maze.hpp"
 #include <iostream>
 #include <algorithm>
+#include "resolution.hpp"
 
-labyrinthe::labyrinthe() : _cellSize(30.0f)
+maze::maze() : _baseCellSize(30.0f)
 {
-    _window.create(sf::VideoMode(1920, 1080), "LABYRINTH");
     if (!_font.loadFromFile("./assets/font/arial.ttf")) {
         std::cerr << "Erreur: Impossible de charger la police arial.ttf" << std::endl;
         if (!_font.loadFromFile("arial.ttf")) {
             std::cerr << "Erreur: Impossible de charger la police de secours" << std::endl;
         }
     }
+    updateForResolution();
 }
 
-void labyrinthe::create_lab()
+void maze::updateForResolution()
+{
+    _cellSize = ResolutionManager::scaleY(_baseCellSize);
+    int col;
+    int row;
+
+    if (!all_case.empty()) {
+        all_case.clear();
+        for (int i = 0; i < _rows; ++i) {
+            for (int j = 0; j < _cols; ++j) {
+                sf::RectangleShape fly(sf::Vector2f(_cellSize, _cellSize));
+                fly.setPosition(j * _cellSize, i * _cellSize);
+                switch (_grid[i][j]) {
+                    case WALL:
+                        fly.setFillColor(sf::Color::Blue);
+                        break;
+                    case ENTRANCE:
+                        fly.setFillColor(sf::Color::Green);
+                        break;
+                    case EXIT:
+                        fly.setFillColor(sf::Color::Red);
+                        break;
+                    default:
+                        fly.setFillColor(sf::Color::White);
+                        break;
+                }
+                all_case.push_back(fly);
+            }
+        }
+        perso.setSize(sf::Vector2f(_cellSize * 0.8f, _cellSize * 0.8f));
+        col = static_cast<int>((perso.getPosition().x + perso.getSize().x/2) / (_cellSize / 0.8f));
+        row = static_cast<int>((perso.getPosition().y + perso.getSize().y/2) / (_cellSize / 0.8f));
+        perso.setPosition(col * _cellSize + (_cellSize - perso.getSize().x) / 2,
+        row * _cellSize + (_cellSize - perso.getSize().y) / 2);
+    }
+}
+
+void maze::create_lab()
 {
     _rows = 20;
     _cols = 40;
     _grid.resize(_rows, std::vector<CellType>(_cols, EMPTY));
 
+    all_case.clear();
     for (int i = 0; i < _rows; ++i) {
         for (int j = 0; j < _cols; ++j) {
             sf::RectangleShape fly(sf::Vector2f(_cellSize, _cellSize));
@@ -39,7 +78,7 @@ void labyrinthe::create_lab()
     perso.setFillColor(sf::Color::Blue);
 }
 
-std::vector<std::string> labyrinthe::load_map_file(const std::string& filename)
+std::vector<std::string> maze::load_map_file(const std::string& filename)
 {
     std::vector<std::string> mapData;
     std::ifstream file(filename);
@@ -57,7 +96,7 @@ std::vector<std::string> labyrinthe::load_map_file(const std::string& filename)
     return mapData;
 }
 
-void labyrinthe::create_lab_from_data(const std::vector<std::string>& mapData)
+void maze::create_lab_from_data(const std::vector<std::string>& mapData)
 {
     _rows = mapData.size();
     _cols = 0;
@@ -66,7 +105,6 @@ void labyrinthe::create_lab_from_data(const std::vector<std::string>& mapData)
 
     for (const auto& l : mapData)
         _cols = std::max(_cols, (int)l.size());
-    adjust_window_size();    
     _grid.resize(_rows, std::vector<CellType>(_cols, EMPTY));
     all_case.clear();
     for (const auto& line : mapData) {
@@ -97,18 +135,9 @@ void labyrinthe::create_lab_from_data(const std::vector<std::string>& mapData)
         }
         row++;
     }
-    adjust_view();
 }
 
-void labyrinthe::adjust_window_size()
-{
-    unsigned int windowWidth = std::min(_cols * (unsigned int)_cellSize, 1500u);
-    unsigned int windowHeight = std::min(_rows * (unsigned int)_cellSize, 760u);
-
-    _window.setSize(sf::Vector2u(windowWidth, windowHeight));
-}
-
-void labyrinthe::adjust_view()
+void maze::adjust_view(sf::RenderWindow& window)
 {
     sf::View view;
     float totalWidth = _cols * _cellSize;
@@ -117,29 +146,26 @@ void labyrinthe::adjust_view()
     float zoomY;
     float zoom;
 
-    if (totalWidth > _window.getSize().x || totalHeight > _window.getSize().y) {
-        zoomX = _window.getSize().x / totalWidth;
-        zoomY = _window.getSize().y / totalHeight;
-        zoom = std::min(zoomX, zoomY);
-        view.setSize(_window.getSize().x / zoom, _window.getSize().y / zoom);
-        view.setCenter(totalWidth / 2, totalHeight / 2);
-        _window.setView(view);
-    }
+    zoomX = window.getSize().x / totalWidth;
+    zoomY = window.getSize().y / totalHeight;
+    zoom = std::min(zoomX, zoomY);
+    view.setSize(window.getSize().x / zoom, window.getSize().y / zoom);
+    view.setCenter(totalWidth / 2, totalHeight / 2);
+    window.setView(view);
 }
 
-void labyrinthe::create_lab(std::string lab)
+void maze::create_lab(std::string lab)
 {
     std::vector<std::string> mapData = load_map_file(lab);
-    
+
     if (mapData.empty()) {
         create_lab();
         return;
     }
-    
     create_lab_from_data(mapData);
 }
 
-bool labyrinthe::isValidPosition(float x, float y)
+bool maze::isValidPosition(float x, float y)
 {
     int col = static_cast<int>(x / _cellSize);
     int row = static_cast<int>(y / _cellSize);
@@ -149,7 +175,7 @@ bool labyrinthe::isValidPosition(float x, float y)
     return _grid[row][col] != WALL;
 }
 
-void labyrinthe::take_commande()
+void maze::take_commande(sf::RenderWindow& window, sf::Event& event)
 {
     int col;
     int row;
@@ -158,49 +184,44 @@ void labyrinthe::take_commande()
     float newX;
     float newY;
 
-    while (_window.pollEvent(_event)) {
-        if (_event.type == sf::Event::Closed)
-            _window.close();
-        if (_event.type == sf::Event::KeyPressed) {
-            currentX = perso.getPosition().x;
-            currentY = perso.getPosition().y;
-            newX = currentX;
-            newY = currentY;
-            switch (_event.key.code) {
-                case sf::Keyboard::Up:
-                    newY -= _cellSize;
-                    break;
-                case sf::Keyboard::Down:
-                    newY += _cellSize;
-                    break;
-                case sf::Keyboard::Left:
-                    newX -= _cellSize;
-                    break;
-                case sf::Keyboard::Right:
-                    newX += _cellSize;
-                    break;
-                default:
-                    break;
-            }
-            if (isValidPosition(newX + perso.getSize().x/2, newY + perso.getSize().y/2)) {
-                perso.setPosition(newX, newY);
-                col = static_cast<int>((newX + perso.getSize().x/2) / _cellSize);
-                row = static_cast<int>((newY + perso.getSize().y/2) / _cellSize);
-                if (row >= 0 && row < _rows && col >= 0 && col < _cols && _grid[row][col] == EXIT)
-                    std::cout << "Bravo ! Vous avez atteint la sortie !" << std::endl;
-            }
+    (void)window;
+    if (event.type == sf::Event::KeyPressed) {
+        currentX = perso.getPosition().x;
+        currentY = perso.getPosition().y;
+        newX = currentX;
+        newY = currentY;
+        switch (event.key.code) {
+            case sf::Keyboard::Up:
+                newY -= _cellSize;
+                break;
+            case sf::Keyboard::Down:
+                newY += _cellSize;
+                break;
+            case sf::Keyboard::Left:
+                newX -= _cellSize;
+                break;
+            case sf::Keyboard::Right:
+                newX += _cellSize;
+                break;
+            default:
+                break;
+        }
+        if (isValidPosition(newX + perso.getSize().x/2, newY + perso.getSize().y/2)) {
+            perso.setPosition(newX, newY);
+            col = static_cast<int>((newX + perso.getSize().x/2) / _cellSize);
+            row = static_cast<int>((newY + perso.getSize().y/2) / _cellSize);
+            if (row >= 0 && row < _rows && col >= 0 && col < _cols && _grid[row][col] == EXIT)
+                std::cout << "Bravo ! Vous avez atteint la sortie !" << std::endl;
         }
     }
 }
 
-bool labyrinthe::display()
+bool maze::display(sf::RenderWindow& window)
 {
-    if (!_window.isOpen())
-        return false;
-    _window.clear(sf::Color(50, 50, 50));
+    adjust_view(window);
+    window.clear(sf::Color(50, 50, 50));
     for (auto &cell : all_case)
-        _window.draw(cell);
-    _window.draw(perso);
-    _window.display();
+        window.draw(cell);
+    window.draw(perso);
     return true;
 }
