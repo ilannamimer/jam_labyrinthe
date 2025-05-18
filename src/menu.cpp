@@ -5,6 +5,7 @@
 Menu::Menu()
     : startButton(nullptr), settingsButton(nullptr), exitButton(nullptr)
 {
+    win = false;
 }
 
 bool Menu::initialize()
@@ -32,6 +33,11 @@ bool Menu::initialize()
         music.setLoop(true);
         music.play();
     }
+    if (!winTexture.loadFromFile("assets/menu/win.png"))
+        std::cerr << "Warning: Could not load win image" << std::endl;
+    winSprite.setTexture(winTexture);
+    winSprite.setPosition(ResolutionManager::scaleX(650), ResolutionManager::scaleY(450));
+    winSprite.setScale(0.6f, 0.18f);
     return true;
 }
 
@@ -74,7 +80,10 @@ void Menu::handleEvents(sf::RenderWindow& window, sf::Event& event, GameState& s
 void Menu::display(sf::RenderWindow& window)
 {
     window.draw(background);
-    startButton->draw(window);
+    if (!win)
+        startButton->draw(window);
+    else
+        window.draw(winSprite);
     settingsButton->draw(window);
     exitButton->draw(window);
 }

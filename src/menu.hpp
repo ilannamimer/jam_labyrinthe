@@ -91,10 +91,14 @@ private:
     std::unique_ptr<Button> exitButton;
     sf::Music music;
 
+    sf::Texture winTexture;
+    sf::Sprite winSprite;
+
 public:
     Menu();
     ~Menu() = default;
 
+    bool win;
     bool initialize();
     void handleEvents(sf::RenderWindow& window, sf::Event& event, GameState& state);
     void display(sf::RenderWindow& window);

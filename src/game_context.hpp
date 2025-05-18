@@ -23,6 +23,9 @@ struct GameContext {
     sf::Music gameMusic;
     bool musicInitialized;
 
+    bool initializeGame(int argc, char **argv);
+    void processEvents();
+    void render();
     GameContext();
     ~GameContext();
 };

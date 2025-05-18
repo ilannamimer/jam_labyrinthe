@@ -22,6 +22,7 @@ maze::maze() : _baseCellSize(30.0f)
     _hors_controle.setTexture(*texture);
     _hors_controle.setScale(0.47f, 0.4f);
     _hors_controle.setPosition(0, 0);
+    win = false;
 }
 
 void maze::updateForResolution()
@@ -242,7 +243,8 @@ void maze::take_commande(sf::RenderWindow& window, sf::Event& event)
             col = static_cast<int>((newX + perso.getSize().x/2) / _cellSize);
             row = static_cast<int>((newY + perso.getSize().y/2) / _cellSize);
             if (row >= 0 && row < _rows && col >= 0 && col < _cols && _grid[row][col] == EXIT)
-                std::cout << "Bravo ! Vous avez atteint la sortie !" << std::endl;
+                win = true;
+            else win = false;
         }
     }
 }

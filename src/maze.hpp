@@ -47,6 +47,7 @@ class maze
         maze();
         ~maze() = default;
 
+        bool win;
         void create_lab();
         void create_lab(std::string lab);
         bool display(sf::RenderWindow& window);
