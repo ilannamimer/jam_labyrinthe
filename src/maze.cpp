@@ -12,6 +12,16 @@ maze::maze() : _baseCellSize(30.0f)
         }
     }
     updateForResolution();
+    _up = sf::Keyboard::Up;
+    _down = sf::Keyboard::Down;
+    _rigth = sf::Keyboard::Right;
+    _left = sf::Keyboard::Left;
+    _timer.restart();
+    sf::Texture* texture = new sf::Texture();
+    texture->loadFromFile("assets/player/hors_cotrole.png");
+    _hors_controle.setTexture(*texture);
+    _hors_controle.setScale(0.47f, 0.4f);
+    _hors_controle.setPosition(0, 0);
 }
 
 void maze::updateForResolution()
@@ -165,6 +175,35 @@ void maze::create_lab(std::string lab)
     create_lab_from_data(mapData);
 }
 
+void maze::change_key(sf::RenderWindow& window)
+{
+    std::vector<sf::Keyboard::Key> all_keys = {sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right};
+
+    _rigth = sf::Keyboard::Unknown;
+    _left = sf::Keyboard::Unknown;
+    _up = sf::Keyboard::Unknown;
+    _down = sf::Keyboard::Unknown;
+    window.draw(_hors_controle);
+
+    if (_timer.getElapsedTime().asSeconds() >= 10.0f){
+
+        _rigth = all_keys[rand() % 4];
+
+        _left = all_keys[rand() % 4];
+        while (_left == _rigth)
+            _left = all_keys[rand() % 4];
+
+        _up = all_keys[rand() % 4];
+        while (_up == _left || _up == _rigth)
+            _up = all_keys[rand() % 4];
+
+        _down = all_keys[rand() % 4];
+        while (_down == _up || _down == _left || _down == _rigth)
+            _down = all_keys[rand() % 4];
+        _timer.restart();
+    }
+}
+
 bool maze::isValidPosition(float x, float y)
 {
     int col = static_cast<int>(x / _cellSize);
@@ -190,22 +229,14 @@ void maze::take_commande(sf::RenderWindow& window, sf::Event& event)
         currentY = perso.getPosition().y;
         newX = currentX;
         newY = currentY;
-        switch (event.key.code) {
-            case sf::Keyboard::Up:
+        if (_up == event.key.code)
                 newY -= _cellSize;
-                break;
-            case sf::Keyboard::Down:
+        if (_down == event.key.code)
                 newY += _cellSize;
-                break;
-            case sf::Keyboard::Left:
+        if (_left == event.key.code)
                 newX -= _cellSize;
-                break;
-            case sf::Keyboard::Right:
+        if (_rigth == event.key.code)
                 newX += _cellSize;
-                break;
-            default:
-                break;
-        }
         if (isValidPosition(newX + perso.getSize().x/2, newY + perso.getSize().y/2)) {
             perso.setPosition(newX, newY);
             col = static_cast<int>((newX + perso.getSize().x/2) / _cellSize);
@@ -223,5 +254,7 @@ bool maze::display(sf::RenderWindow& window)
     for (auto &cell : all_case)
         window.draw(cell);
     window.draw(perso);
+    if (_timer.getElapsedTime().asSeconds() >= 8.0f)
+        change_key(window);
     return true;
 }
