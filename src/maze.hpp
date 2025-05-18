@@ -21,7 +21,7 @@ class maze
     private:
         sf::Event _event;
         sf::Font _font;
-        std::vector<sf::RectangleShape> all_case;
+        std::vector<sf::Sprite> all_case;
         sf::RectangleShape perso;
         std::vector<std::vector<CellType>> _grid;
         sf::Sprite _hors_controle;
@@ -33,6 +33,10 @@ class maze
         sf::Keyboard::Key _rigth;
         sf::Keyboard::Key _up;
         sf::Keyboard::Key _down;
+
+        sf::Texture _wallTexture;
+        sf::Texture _pathTexture;
+        sf::Texture _enterTexture;
 
         sf::Clock _timer;
 

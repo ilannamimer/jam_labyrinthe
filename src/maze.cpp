@@ -22,7 +22,21 @@ maze::maze() : _baseCellSize(30.0f)
     _hors_controle.setTexture(*texture);
     _hors_controle.setScale(0.47f, 0.4f);
     _hors_controle.setPosition(0, 0);
+    
+    if (!_wallTexture.loadFromFile("assets/player/wall.jpg"))
+        std::cerr << "Erreur: Impossible de charger mur.jpg" << std::endl;
+
+    if (!_pathTexture.loadFromFile("assets/player/path.jpg"))
+        std::cerr << "Erreur: Impossible de charger shemin.jpg" << std::endl;
+    
+    if (!_enterTexture.loadFromFile("assets/player/enter.jpg"))
+        std::cerr << "Erreur: Impossible de charger shemin.jpg" << std::endl;
+
     win = false;
+    //sf::Texture _playerTexture;
+    //if (!_playerTexture.loadFromFile("assets/player/player.png"))
+    //    std::cerr << "Erreur: Impossible de charger assets/player/player.png" << std::endl;
+    //perso.setTexture(_playerTexture);
 }
 
 void maze::updateForResolution()
@@ -35,32 +49,41 @@ void maze::updateForResolution()
         all_case.clear();
         for (int i = 0; i < _rows; ++i) {
             for (int j = 0; j < _cols; ++j) {
-                sf::RectangleShape fly(sf::Vector2f(_cellSize, _cellSize));
+                sf::Sprite fly;
                 fly.setPosition(j * _cellSize, i * _cellSize);
+
                 switch (_grid[i][j]) {
                     case WALL:
-                        fly.setFillColor(sf::Color::Blue);
+                        fly.setTexture(_wallTexture);
+                        fly.setScale(_cellSize / _wallTexture.getSize().x, _cellSize / _wallTexture.getSize().y);
                         break;
                     case ENTRANCE:
-                        fly.setFillColor(sf::Color::Green);
+                        fly.setTexture(_enterTexture);
+                        fly.setScale(_cellSize / _enterTexture.getSize().x, _cellSize / _enterTexture.getSize().y);
                         break;
                     case EXIT:
-                        fly.setFillColor(sf::Color::Red);
+                        fly.setTexture(_enterTexture);
+                        fly.setScale(_cellSize / _enterTexture.getSize().x, _cellSize / _enterTexture.getSize().y);
                         break;
                     default:
-                        fly.setFillColor(sf::Color::White);
+                        fly.setTexture(_pathTexture);
+                        fly.setScale(_cellSize / _pathTexture.getSize().x, _cellSize / _pathTexture.getSize().y);
                         break;
                 }
+
                 all_case.push_back(fly);
             }
         }
         perso.setSize(sf::Vector2f(_cellSize * 0.8f, _cellSize * 0.8f));
-        col = static_cast<int>((perso.getPosition().x + perso.getSize().x/2) / (_cellSize / 0.8f));
-        row = static_cast<int>((perso.getPosition().y + perso.getSize().y/2) / (_cellSize / 0.8f));
-        perso.setPosition(col * _cellSize + (_cellSize - perso.getSize().x) / 2,
-        row * _cellSize + (_cellSize - perso.getSize().y) / 2);
+        col = static_cast<int>((perso.getPosition().x + perso.getSize().x / 2) / (_cellSize / 0.8f));
+        row = static_cast<int>((perso.getPosition().y + perso.getSize().y / 2) / (_cellSize / 0.8f));
+        perso.setPosition(
+            col * _cellSize + (_cellSize - perso.getSize().x) / 2,
+            row * _cellSize + (_cellSize - perso.getSize().y) / 2
+        );
     }
 }
+
 
 void maze::create_lab()
 {
@@ -71,13 +94,14 @@ void maze::create_lab()
     all_case.clear();
     for (int i = 0; i < _rows; ++i) {
         for (int j = 0; j < _cols; ++j) {
-            sf::RectangleShape fly(sf::Vector2f(_cellSize, _cellSize));
+            sf::Sprite fly;
             fly.setPosition(j * _cellSize, i * _cellSize);
+            fly.setScale(_cellSize / _wallTexture.getSize().x, _cellSize / _wallTexture.getSize().y);
             if (i == 0 || j == 0 || i == _rows-1 || j == _cols-1) {
-                fly.setFillColor(sf::Color::Blue);
+                fly.setTexture(_wallTexture);
                 _grid[i][j] = WALL;
             } else {
-                fly.setFillColor(sf::Color::White);
+                fly.setTexture(_pathTexture);
                 _grid[i][j] = EMPTY;
             }
             all_case.push_back(fly);
@@ -120,14 +144,15 @@ void maze::create_lab_from_data(const std::vector<std::string>& mapData)
     all_case.clear();
     for (const auto& line : mapData) {
         for (size_t col = 0; col < line.size(); col++) {
-            sf::RectangleShape fly(sf::Vector2f(_cellSize, _cellSize));
+            sf::Sprite fly;
             fly.setPosition(col * _cellSize, row * _cellSize);
+
             cell = line[col];
             if (cell == '#') {
-                fly.setFillColor(sf::Color::Blue);
+                fly.setTexture(_wallTexture);
                 _grid[row][col] = WALL;
             } else if (cell == 'E') {
-                fly.setFillColor(sf::Color::Green);
+                fly.setTexture(_enterTexture);
                 _grid[row][col] = ENTRANCE;
                 perso = sf::RectangleShape(sf::Vector2f(_cellSize * 0.8f, _cellSize * 0.8f));
                 perso.setPosition(col * _cellSize + (_cellSize - perso.getSize().x) / 2,
@@ -136,10 +161,10 @@ void maze::create_lab_from_data(const std::vector<std::string>& mapData)
                 all_case.push_back(fly);
                 continue;
             } else if (cell == 'S') {
-                fly.setFillColor(sf::Color::Red);
+                fly.setTexture(_enterTexture);
                 _grid[row][col] = EXIT;
             } else {
-                fly.setFillColor(sf::Color::White);
+                fly.setTexture(_pathTexture);
                 _grid[row][col] = EMPTY;
             }
             all_case.push_back(fly);
