@@ -20,7 +20,6 @@ maze::maze() : _baseCellSize(30.0f)
     sf::Texture* texture = new sf::Texture();
     texture->loadFromFile("assets/player/hors_cotrole.png");
     _hors_controle.setTexture(*texture);
-    _hors_controle.setScale(0.47f, 0.4f);
     _hors_controle.setPosition(0, 0);
     
     if (!_wallTexture.loadFromFile("assets/player/wall.jpg"))
