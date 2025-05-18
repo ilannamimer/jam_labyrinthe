@@ -16,6 +16,14 @@ enum CellType {
     EXIT
 };
 
+enum Direction {
+    DOWN,
+    RIGHT,
+    LEFT,
+    UP,
+    IDLE
+};
+
 class maze
 {
     private:
@@ -25,6 +33,8 @@ class maze
         sf::RectangleShape perso;
         std::vector<std::vector<CellType>> _grid;
         sf::Sprite _hors_controle;
+        sf::Vector2f _baseHorsControlePosition;
+        sf::Vector2f _baseHorsControleSize;
         float _baseCellSize;
         float _cellSize;
         int _rows;
@@ -38,6 +48,18 @@ class maze
         sf::Texture _pathTexture;
         sf::Texture _enterTexture;
 
+        std::vector<sf::Texture> _playerTextureDown;
+        std::vector<sf::Texture> _playerTextureRight;
+        std::vector<sf::Texture> _playerTextureLeft;
+        std::vector<sf::Texture> _playerTextureUp;
+        sf::Texture _playerTextureIdle;
+
+        sf::Sprite playerSprite;
+        Direction currentDirection;
+        int currentFrame;
+        sf::Clock animationClock;
+        sf::Clock idleClock;
+        bool isMoving;
         sf::Clock _timer;
 
         void change_key(sf::RenderWindow& window);
@@ -46,7 +68,8 @@ class maze
         void create_lab_from_data(const std::vector<std::string>& mapData);
         void adjust_view(sf::RenderWindow& window);
         void updateForResolution();
-        
+        void updateAnimation();
+        void loadTextures();
     public:
         maze();
         ~maze() = default;

@@ -3,7 +3,98 @@
 #include <algorithm>
 #include "resolution.hpp"
 
-maze::maze() : _baseCellSize(30.0f)
+void maze::loadTextures()
+{
+    sf::Texture* texture = new sf::Texture();
+    if (texture->loadFromFile("assets/player/hors_cotrole.png")) {
+        _hors_controle.setTexture(*texture);
+        
+        _baseHorsControleSize = sf::Vector2f(texture->getSize().x, texture->getSize().y);
+        _baseHorsControlePosition = sf::Vector2f(960 - _baseHorsControleSize.x/2, 540 - _baseHorsControleSize.y/2);
+        
+        _hors_controle.setOrigin(_baseHorsControleSize.x/2, _baseHorsControleSize.y/2);
+    } else {
+        std::cerr << "Erreur: Impossible de charger hors_cotrole.png" << std::endl;
+    }
+    
+    if (!_wallTexture.loadFromFile("assets/player/wall.jpg"))
+        std::cerr << "Erreur: Impossible de charger mur.jpg" << std::endl;
+
+    if (!_pathTexture.loadFromFile("assets/player/path.jpg"))
+        std::cerr << "Erreur: Impossible de charger shemin.jpg" << std::endl;
+    
+    if (!_enterTexture.loadFromFile("assets/player/enter.jpg"))
+        std::cerr << "Erreur: Impossible de charger shemin.jpg" << std::endl;
+    
+    sf::Texture texDown1, texDown2, texDown3;
+    if (texDown1.loadFromFile("assets/player/perso/perso1.png"))
+        _playerTextureDown.push_back(texDown1);
+    else
+        std::cerr << "Erreur: Impossible de charger perso1.png" << std::endl;
+    
+    if (texDown2.loadFromFile("assets/player/perso/perso2.png"))
+        _playerTextureDown.push_back(texDown2);
+    else
+        std::cerr << "Erreur: Impossible de charger perso2.png" << std::endl;
+    
+    if (texDown3.loadFromFile("assets/player/perso/perso3.png"))
+        _playerTextureDown.push_back(texDown3);
+    else
+        std::cerr << "Erreur: Impossible de charger perso3.png" << std::endl;
+    
+    if (!_playerTextureIdle.loadFromFile("assets/player/perso/perso2.png"))
+        std::cerr << "Erreur: Impossible de charger perso2.png pour la pose statique" << std::endl;
+    
+    sf::Texture texUp1, texUp2;
+    if (texUp1.loadFromFile("assets/player/perso/perso_avant1.png"))
+        _playerTextureUp.push_back(texUp1);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_avant1.png" << std::endl;
+    
+    if (texUp2.loadFromFile("assets/player/perso/perso_avant2.png"))
+        _playerTextureUp.push_back(texUp2);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_avant2.png" << std::endl;
+    
+    sf::Texture texRight1, texRight2, texRight3;
+    if (texRight1.loadFromFile("assets/player/perso/perso_droite1.png"))
+        _playerTextureRight.push_back(texRight1);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_droite1.png" << std::endl;
+    
+    if (texRight2.loadFromFile("assets/player/perso/perso_droite2.png"))
+        _playerTextureRight.push_back(texRight2);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_droite2.png" << std::endl;
+    
+    if (texRight3.loadFromFile("assets/player/perso/perso_droite3.png"))
+        _playerTextureRight.push_back(texRight3);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_droite3.png" << std::endl;
+    
+    sf::Texture texLeft1, texLeft2, texLeft3;
+    if (texLeft1.loadFromFile("assets/player/perso/perso_gauche1.png"))
+        _playerTextureLeft.push_back(texLeft1);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_gauche1.png" << std::endl;
+    
+    if (texLeft2.loadFromFile("assets/player/perso/perso_gauche2.png"))
+        _playerTextureLeft.push_back(texLeft2);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_gauche2.png" << std::endl;
+    
+    if (texLeft3.loadFromFile("assets/player/perso/perso_gauche3.png"))
+        _playerTextureLeft.push_back(texLeft3);
+    else
+        std::cerr << "Erreur: Impossible de charger perso_gauche3.png" << std::endl;
+
+    playerSprite.setTexture(_playerTextureIdle);
+    sf::Vector2u textureSize = _playerTextureIdle.getSize();
+    playerSprite.setOrigin(textureSize.x / 2.0f, textureSize.y / 2.0f);
+}
+maze::maze() : _baseHorsControlePosition(960, 540), 
+               _baseHorsControleSize(500, 500), 
+               _baseCellSize(30.0f), currentDirection(IDLE), currentFrame(0), isMoving(false)
 {
     if (!_font.loadFromFile("./assets/font/arial.ttf")) {
         std::cerr << "Erreur: Impossible de charger la police arial.ttf" << std::endl;
@@ -17,30 +108,62 @@ maze::maze() : _baseCellSize(30.0f)
     _rigth = sf::Keyboard::Right;
     _left = sf::Keyboard::Left;
     _timer.restart();
-    sf::Texture* texture = new sf::Texture();
-    texture->loadFromFile("assets/player/hors_cotrole.png");
-    _hors_controle.setTexture(*texture);
-    _hors_controle.setPosition(0, 0);
     
-    if (!_wallTexture.loadFromFile("assets/player/wall.jpg"))
-        std::cerr << "Erreur: Impossible de charger mur.jpg" << std::endl;
-
-    if (!_pathTexture.loadFromFile("assets/player/path.jpg"))
-        std::cerr << "Erreur: Impossible de charger shemin.jpg" << std::endl;
+    loadTextures();
     
-    if (!_enterTexture.loadFromFile("assets/player/enter.jpg"))
-        std::cerr << "Erreur: Impossible de charger shemin.jpg" << std::endl;
-
+    animationClock.restart();
+    idleClock.restart();
     win = false;
-    //sf::Texture _playerTexture;
-    //if (!_playerTexture.loadFromFile("assets/player/player.png"))
-    //    std::cerr << "Erreur: Impossible de charger assets/player/player.png" << std::endl;
-    //perso.setTexture(_playerTexture);
+}
+
+void maze::updateAnimation()
+{
+    if (!isMoving && idleClock.getElapsedTime().asMilliseconds() > 500) {
+        playerSprite.setTexture(_playerTextureIdle);
+        currentDirection = IDLE;
+        return;
+    }
+    
+    if (isMoving && animationClock.getElapsedTime().asMilliseconds() > 200) {
+        animationClock.restart();
+        
+        std::vector<sf::Texture>* currentTextures = nullptr;
+        
+        switch (currentDirection) {
+            case DOWN:
+                currentTextures = &_playerTextureDown;
+                break;
+            case RIGHT:
+                currentTextures = &_playerTextureRight;
+                break;
+            case LEFT:
+                currentTextures = &_playerTextureLeft;
+                break;
+            case UP:
+                currentTextures = &_playerTextureUp;
+                break;
+            case IDLE:
+                playerSprite.setTexture(_playerTextureIdle);
+                return;
+        }
+        
+        if (currentTextures && !currentTextures->empty()) {
+            currentFrame = (currentFrame + 1) % currentTextures->size();
+            playerSprite.setTexture((*currentTextures)[currentFrame]);
+        }
+    }
+    
+    isMoving = false;
 }
 
 void maze::updateForResolution()
 {
     _cellSize = ResolutionManager::scaleY(_baseCellSize);
+    sf::Vector2f scaledPosition = ResolutionManager::scalePosition(_baseHorsControlePosition);
+    float scaleFactorX = ResolutionManager::scaleX(1.0f);
+    float scaleFactorY = ResolutionManager::scaleY(1.0f);
+    _hors_controle.setPosition(scaledPosition);
+    _hors_controle.setScale(scaleFactorX, scaleFactorY);
     int col;
     int row;
 
@@ -80,9 +203,16 @@ void maze::updateForResolution()
             col * _cellSize + (_cellSize - perso.getSize().x) / 2,
             row * _cellSize + (_cellSize - perso.getSize().y) / 2
         );
+        playerSprite.setPosition(
+            col * _cellSize + _cellSize / 2,
+            row * _cellSize + _cellSize / 2
+        );
+        playerSprite.setScale(
+            _cellSize / 32.0f * 0.8f,
+            _cellSize / 32.0f * 0.8f
+        );
     }
 }
-
 
 void maze::create_lab()
 {
@@ -110,6 +240,14 @@ void maze::create_lab()
     perso.setPosition(_cellSize + (_cellSize - perso.getSize().x) / 2,
     _cellSize + (_cellSize - perso.getSize().y) / 2);
     perso.setFillColor(sf::Color::Blue);
+    playerSprite.setPosition(
+        _cellSize + _cellSize / 2, 
+        _cellSize + _cellSize / 2
+    );
+    playerSprite.setScale(
+        _cellSize / 32.0f * 0.8f,
+        _cellSize / 32.0f * 0.8f
+    );
 }
 
 std::vector<std::string> maze::load_map_file(const std::string& filename)
@@ -157,6 +295,14 @@ void maze::create_lab_from_data(const std::vector<std::string>& mapData)
                 perso.setPosition(col * _cellSize + (_cellSize - perso.getSize().x) / 2,
                 row * _cellSize + (_cellSize - perso.getSize().y) / 2);
                 perso.setFillColor(sf::Color::Blue);
+                playerSprite.setPosition(
+                    col * _cellSize + _cellSize / 2,
+                    row * _cellSize + _cellSize / 2
+                );
+                playerSprite.setScale(
+                    _cellSize / 32.0f * 0.8f,
+                    _cellSize / 32.0f * 0.8f
+                );
                 all_case.push_back(fly);
                 continue;
             } else if (cell == 'S') {
@@ -208,8 +354,11 @@ void maze::change_key(sf::RenderWindow& window)
     _left = sf::Keyboard::Unknown;
     _up = sf::Keyboard::Unknown;
     _down = sf::Keyboard::Unknown;
-    window.draw(_hors_controle);
 
+    sf::View currentView = window.getView();
+    window.setView(window.getDefaultView());
+    window.draw(_hors_controle);
+    window.setView(currentView);
     if (_timer.getElapsedTime().asSeconds() >= 10.0f){
 
         _rigth = all_keys[rand() % 4];
@@ -247,6 +396,7 @@ void maze::take_commande(sf::RenderWindow& window, sf::Event& event)
     float currentY;
     float newX;
     float newY;
+    bool moved = false;
 
     (void)window;
     if (event.type == sf::Event::KeyPressed) {
@@ -254,18 +404,45 @@ void maze::take_commande(sf::RenderWindow& window, sf::Event& event)
         currentY = perso.getPosition().y;
         newX = currentX;
         newY = currentY;
-        if (_up == event.key.code)
-                newY -= _cellSize;
-        if (_down == event.key.code)
-                newY += _cellSize;
-        if (_left == event.key.code)
-                newX -= _cellSize;
-        if (_rigth == event.key.code)
-                newX += _cellSize;
+        if (_up == event.key.code) {
+            newY -= _cellSize;
+            currentDirection = UP;
+            moved = true;
+        }
+        if (_down == event.key.code) {
+            newY += _cellSize;
+            currentDirection = DOWN;
+            moved = true;
+        }
+        if (_left == event.key.code) {
+            newX -= _cellSize;
+            currentDirection = LEFT;
+            moved = true;
+        }
+        if (_rigth == event.key.code) {
+            newX += _cellSize;
+            currentDirection = RIGHT;
+            moved = true;
+        }
         if (isValidPosition(newX + perso.getSize().x/2, newY + perso.getSize().y/2)) {
             perso.setPosition(newX, newY);
+            playerSprite.setPosition(newX + perso.getSize().x/2, newY + perso.getSize().y/2);
             col = static_cast<int>((newX + perso.getSize().x/2) / _cellSize);
             row = static_cast<int>((newY + perso.getSize().y/2) / _cellSize);
+            if (moved) {
+                isMoving = true;
+                animationClock.restart();
+                idleClock.restart();
+                currentFrame = (currentFrame + 1) % 3;
+                if (currentDirection == DOWN && !_playerTextureDown.empty())
+                    playerSprite.setTexture(_playerTextureDown[currentFrame % _playerTextureDown.size()]);
+                else if (currentDirection == UP && !_playerTextureUp.empty())
+                    playerSprite.setTexture(_playerTextureUp[currentFrame % _playerTextureUp.size()]);
+                else if (currentDirection == LEFT && !_playerTextureLeft.empty())
+                    playerSprite.setTexture(_playerTextureLeft[currentFrame % _playerTextureLeft.size()]);
+                else if (currentDirection == RIGHT && !_playerTextureRight.empty())
+                    playerSprite.setTexture(_playerTextureRight[currentFrame % _playerTextureRight.size()]);
+            }
             if (row >= 0 && row < _rows && col >= 0 && col < _cols && _grid[row][col] == EXIT)
                 win = true;
             else win = false;
@@ -279,7 +456,8 @@ bool maze::display(sf::RenderWindow& window)
     window.clear(sf::Color(50, 50, 50));
     for (auto &cell : all_case)
         window.draw(cell);
-    window.draw(perso);
+    updateAnimation();
+    window.draw(playerSprite);
     if (_timer.getElapsedTime().asSeconds() >= 8.0f)
         change_key(window);
     return true;
